@@ -8,10 +8,13 @@ const uuid = require('uuid/v1');
 
 require('./form-field.scss');
 
-export function getNestedField(src: any, path: string): any {
+export function getNestedField(src: any, path: string, fieldSelector?: (source: any) => any): any {
     const parts = path.split('.');
     while (parts.length > 0 && src) {
         src = src[parts.splice(0, 1)[0]];
+    }
+    if (fieldSelector) {
+        return fieldSelector(src);
     }
     return src;
 }
@@ -20,6 +23,7 @@ export const FormField: <E, T extends ReactForm.FieldProps & { className?: strin
     props: React.Props<E> & {
         label?: string,
         field: string,
+        fieldSelector?: (source: any) => any,
         formApi: ReactForm.FormApi,
         component: React.ComponentType<T>,
         componentProps?: T,
@@ -37,10 +41,10 @@ export const FormField: <E, T extends ReactForm.FieldProps & { className?: strin
                 id={id}
                 qeid={props.qeId}
                 field={props.field}
-                className={classNames({ 'argo-field': true, 'argo-has-value': !!getNestedField(props.formApi.values, props.field) })}/>
+                className={classNames({ 'argo-field': true, 'argo-has-value': !!getNestedField(props.formApi.values, props.field, props.fieldSelector) })}/>
 
             {props.label && <label htmlFor={id} className='argo-label-placeholder'>{props.label}</label>}
-            {getNestedField(props.formApi.touched, props.field) &&
+            {getNestedField(props.formApi.touched, props.field, props.fieldSelector) &&
                 (props.formApi.errors[props.field] && <div className='argo-form-row__error-msg'>{props.formApi.errors[props.field]}</div>)
             }
         </div>
